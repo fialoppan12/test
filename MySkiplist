@@ -1,0 +1,236 @@
+package skipList;
+import java.util.Random;
+
+/*
+ * Sofia Stub-Hansen
+ * sost8638@su.se
+ * 
+ * henrik, om den här också är fail så kommer jag börja gråta. 
+ * 
+ * */
+     
+     
+    public class MySkiplist<T extends Comparable<? super T>> implements skiplist<T> {
+        	private static Random r = new Random();
+        	private int maxLevel=0;
+            private static int MAX_LEVEL = 6;
+            private Node<T> first = new Node<T>(null, MAX_LEVEL);          
+            private int count;
+     
+            @Override
+            public void add(T data) {
+                    if (this.contains(data)) {
+                    	this.containsNode(data).unaMas();
+                    	count++;
+                    	return;
+                    }
+                    int level = randGen();
+                    Node<T> newNode = new Node<T>(data, level);
+               /*      Node<T> tmp = first;
+                    Node<T>[] updatePointers = new Node[MAX_LEVEL+1];
+                   
+                   for (int i = maxLevel; i>=0;i--) {
+                    	while (tmp.next[i]!=null && tmp.next[i].data.compareTo(data)<0) {
+                    		tmp = tmp.next[i];
+                    	}
+                    	updatePointers[i] = tmp;
+                    }*/
+                    Node<T>[] updatePointers = updatePointerz(data);
+
+
+                	for (int i = 0; i<=level; i++) {
+                		newNode.next[i]=updatePointers[i].next[i];
+                		updatePointers[i].next[i]=newNode;
+                	}
+                    count++;       
+            }
+            
+            private Node<T>[] updatePointerz(T data) {
+                Node<T> tmp = first;
+                Node<T>[] updatePointers = new Node[MAX_LEVEL+1];
+                
+                for (int i = maxLevel; i>=0;i--) {
+                	while (tmp.next[i]!=null && tmp.next[i].data.compareTo(data)<0) {
+                		tmp = tmp.next[i];
+                	}
+                	updatePointers[i] = tmp;
+                }             
+                return updatePointers;
+            }
+     
+            @Override
+            public boolean remove(T data) {
+            	if (!this.contains(data)) {
+            		return false;
+            	}
+            /*    Node<T> tmp = first;
+                Node<T>[] updatePointers = new Node[MAX_LEVEL+1];
+               
+                for (int i = maxLevel; i>=0;i--) {
+                	while (tmp.next[i]!=null && tmp.next[i].data.compareTo(data)<0) {
+                		tmp = tmp.next[i];
+                	}
+                	updatePointers[i] = tmp;
+                }
+                */
+            	
+                Node<T>[] updatePointers = updatePointerz(data);                
+                Node<T> x = updatePointers[0].next[0];
+                
+                if (x.getAntal()>1) {
+                	x.minAntal();
+                	count--;
+                	return true;
+                }
+                if (x.data.equals(data)) {
+		            for (int i = 0; i<=maxLevel; i++) {
+		            	if (updatePointers[i].next[i] != x)
+		            		break;
+		            	updatePointers[i].next[i]=x.next[i];
+		            }
+		            count--;
+		            return true;
+                }
+                return false;
+            }
+     
+            @Override
+            public boolean contains(T data) {
+                Node<T> tmp = first;
+                for(int i = maxLevel; i>=0; i--) {
+                        while (tmp.next[i]!=null && tmp.next[i].data.compareTo(data)<0) {
+                                tmp=tmp.next[i];
+                        }
+                }
+                tmp = tmp.next[0];
+                return tmp!= null && tmp.data.equals(data);
+        }
+            
+            private Node<T> containsNode(T data) {
+                Node<T> tmp = first;
+                for(int i = maxLevel; i>=0; i--) {
+                        while (tmp.next[i]!=null && tmp.next[i].data.compareTo(data)<0) {
+                                tmp=tmp.next[i];
+                        }
+                }
+                tmp = tmp.next[0];
+                if (tmp != null && tmp.data.equals(data))
+                	return tmp;
+                return null;
+        }
+        
+           
+            private int size() {
+                   return count;
+            }
+            
+           
+            private int randGen() {
+                    boolean rand = r.nextBoolean();
+                    int c = 0;
+                    while (rand) {
+                            c++;
+                            rand=r.nextBoolean();
+                            if (c>=maxLevel) {
+                                    if (maxLevel<MAX_LEVEL)
+                                            maxLevel++;
+                                    return maxLevel;
+                            }
+                    }
+                    return c;
+            }
+            
+            	
+    	       public String toString() {
+                    StringBuilder leString = new StringBuilder();
+                    leString.append("[");
+                    Node<T> tmp = first.next[0];
+                    while (tmp!=null) {
+                            for (int i = tmp.getAntal(); i>0; i--) {
+                                leString.append(tmp.data);
+                                if (i>1) 
+                              	leString.append(", ");                            
+                           }
+                            tmp=tmp.next[0];
+                            if (tmp!=null)
+                                    leString.append(", ");
+                    }
+                    leString.append("]");
+                    return leString.toString();
+            }
+            
+            
+            
+           
+            private class Node<N extends Comparable<? super N>> {
+                    private Node<N>[] next;
+                    private N data;
+                    private int antal;
+                   
+                    private Node(N data, int l) {
+                            this.data=data;
+                            next = new Node[l+1];
+                            antal=1;
+                    }
+                    
+                    private void unaMas() {
+                    	antal++;
+                    }
+                    
+                    private void minAntal() {
+                    	antal--;
+                    }
+                    
+                    private int getAntal() {
+                    	return antal;
+                    }
+            }
+
+            
+            
+            
+            
+            
+            public static void main(String[] args) {
+                    MySkiplist<Integer> msk = new MySkiplist<Integer>();
+                    int[] freq = new int[10];
+                    Random r = new Random();
+                    int c = 0;
+                    //chech randomGen
+              /*      for (int i = 0; i<100;i++) {
+                    int wutNumerIsDis = msk.randGen();
+                    freq[wutNumerIsDis]++;
+                    }
+                   
+                    for (int i = 0; i<freq.length;i++) {
+                            System.out.println(i+" "+freq[i]);
+                    }
+                  */  
+                    for (int i =0; i<100; i++) {
+                    msk.add(i);                    
+                    }
+                    
+                    System.out.println(msk.toString());
+                    System.out.println(msk.size());
+                    for (int i =0; i<100; i++) {
+                    	int randomInt = r.nextInt(100);
+                    if (msk.remove(randomInt)) {
+                    	System.out.println("removed: "+randomInt);
+                    	c++;
+                    }
+                    
+                    }
+                    
+                    System.out.println(msk.toString());
+                    System.out.println(c+" "+msk.size());
+                    
+                    for (int i =0; i<100; i++) {
+                    msk.add(i);                    
+                    }
+                    
+                    System.out.println(msk.toString());
+                    System.out.println(c+" "+msk.size());
+                    
+
+            }
+    }
